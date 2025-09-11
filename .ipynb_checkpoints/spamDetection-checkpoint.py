@@ -6,7 +6,9 @@ import json
 
 
 model = joblib.load("best_pipeline.pkl")
-
+with open("model_metrics.json", "r") as f:
+    metrics = json.load(f)
+    
 
 st.markdown("<h2 style = 'text-align: left; color: orange;'> SMS Spam Detector </h2>", unsafe_allow_html = True)
 st.markdown("<h3 style = 'text-align: left; color: gray;'> Enter a message below and click 'Classify' to check if it is a spam or not </h3>", unsafe_allow_html = True)
@@ -16,8 +18,28 @@ st.divider()
 message = ""
 uploaded_file = st.file_uploader("Upload a text file", type = ["txt", "text/plain"])
 
+# Model evaluation    
+metrics_df = pd.DataFrame(metrics).transpose()
+metrics_df_filtered = metrics_df[["precision", "recall", "f1-score", "support"]]
+metrics_df_filtered = metrics_df_filtered.rename(index= {"1" : "Spam", "0" : "Not Spam"})
+metrics_df_filtered = metrics_df_filtered.loc[["Spam", "Not Spam"]]
 
-custom_threshold = 0.4
+
+with st.sidebar:
+    st.subheader("Disclaimer")
+    st.markdown("<h2 style = 'color: red;'>This is a machine learning demonstration for educational purposes.\n It is not a professional spam filter. Messages entered are not stored </h2>", unsafe_allow_html = True)
+    
+    st.header("Model Details")
+    st.subheader("Loaded Model Pipeline")
+    st.write(model.steps)
+
+    st.subheader("Model Settings")
+    custom_threshold = st.slider("Classification Threshold", 0.0, 1.0, 0.6, 0.05)
+    st.markdown(f"**Custom Threshold:** {custom_threshold}")
+    
+    st.subheader("Model Performance")
+    st.markdown(f"****Overall Accuracy:**** {metrics["accuracy"]:.2f}")
+    st.dataframe(metrics_df_filtered.round(2))
 
 
 if uploaded_file is not None:
@@ -54,28 +76,4 @@ if st.button("Classify"):
         st.stop()
 
 
-    
-with open("model_metrics.json", "r") as f:
-    metrics = json.load(f)
-    
-metrics_df = pd.DataFrame(metrics).transpose()
 
-metrics_df_filtered = metrics_df[["precision", "recall", "f1-score", "support"]]
-metrics_df_filtered = metrics_df_filtered.rename(index= {"1" : "Spam", "0" : "Not Spam"})
-metrics_df_filtered = metrics_df_filtered.loc[["Spam", "Not Spam"]]
-
-with st.sidebar:
-    st.subheader("Disclaimer")
-    st.markdown("<h2 style = 'color: red;'>This is a machine learning demonstration for educational purposes.\n It is not a professional spam filter. Messages entered are not stored </h2>", unsafe_allow_html = True)
-    
-    st.header("Model Details")
-    st.subheader("Loaded Model Pipeline")
-    st.write(model.steps)
-    
-    st.markdown(f"**Default Custom Threshold:** {custom_threshold}")
-    st.subheader("Model Settings")
-    custom_threshold = st.slider("Classification Threshold", 0.0, 1.0, 0.4, 0.05)
-    
-    st.subheader("Model Performance")
-    st.markdown(f"****Overall Accuracy:**** {metrics["accuracy"]:.2f}")
-    st.dataframe(metrics_df_filtered.round(2))
