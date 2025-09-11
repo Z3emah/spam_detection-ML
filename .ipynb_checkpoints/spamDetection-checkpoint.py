@@ -34,7 +34,7 @@ with st.sidebar:
     st.write(model.steps)
 
     st.subheader("Model Settings")
-    custom_threshold = st.slider("Classification Threshold", 0.0, 1.0, 0.6, 0.05)
+    custom_threshold = st.slider("Classification Threshold", 0.0, 1.0, 0.5, 0.05)
     st.markdown(f"**Custom Threshold:** {custom_threshold}")
     
     st.subheader("Model Performance")
